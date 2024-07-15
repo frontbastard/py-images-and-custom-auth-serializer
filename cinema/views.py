@@ -1,15 +1,15 @@
 from datetime import datetime
 
 from django.db.models import F, Count
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, permissions, status
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from cinema.models import Genre, Actor, CinemaHall, Movie, MovieSession, Order
-from cinema.permissions import IsAdminOrIfAuthenticatedReadOnly
-
 from cinema.serializers import (
     GenreSerializer,
     ActorSerializer,
@@ -22,6 +22,7 @@ from cinema.serializers import (
     MovieListSerializer,
     OrderSerializer,
     OrderListSerializer,
+    MovieImageSerializer,
 )
 
 
@@ -93,7 +94,26 @@ class MovieViewSet(
         if self.action == "retrieve":
             return MovieDetailSerializer
 
+        if self.action == "upload_image":
+            return MovieImageSerializer
+
         return MovieSerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        permission_classes=[permissions.IsAdminUser],
+        url_path="upload-image"
+    )
+    def upload_image(self, request, pk=None):
+        bus = self.get_object()
+        serializer = self.get_serializer(bus, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MovieSessionViewSet(viewsets.ModelViewSet):
@@ -102,8 +122,8 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
         .select_related("movie", "cinema_hall")
         .annotate(
             tickets_available=(
-                F("cinema_hall__rows") * F("cinema_hall__seats_in_row")
-                - Count("tickets")
+                    F("cinema_hall__rows") * F("cinema_hall__seats_in_row")
+                    - Count("tickets")
             )
         )
     )
