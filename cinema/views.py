@@ -23,6 +23,7 @@ from cinema.serializers import (
     OrderSerializer,
     OrderListSerializer,
     MovieImageSerializer,
+    MovieCreateSerializer,
 )
 
 
@@ -97,6 +98,9 @@ class MovieViewSet(
         if self.action == "upload_image":
             return MovieImageSerializer
 
+        if self.action == "create":
+            return MovieCreateSerializer
+
         return MovieSerializer
 
     @action(
@@ -111,7 +115,7 @@ class MovieViewSet(
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -122,8 +126,8 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
         .select_related("movie", "cinema_hall")
         .annotate(
             tickets_available=(
-                    F("cinema_hall__rows") * F("cinema_hall__seats_in_row")
-                    - Count("tickets")
+                F("cinema_hall__rows") * F("cinema_hall__seats_in_row")
+                - Count("tickets")
             )
         )
     )
