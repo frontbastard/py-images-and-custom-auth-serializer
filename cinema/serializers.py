@@ -50,10 +50,14 @@ class MovieDetailSerializer(MovieSerializer):
     genres = GenreSerializer(many=True, read_only=True)
     actors = ActorSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Movie
-        fields = ("id", "title", "description", "duration", "genres",
-                  "actors", "image")
+
+class MovieCreateSerializer(MovieSerializer):
+    class Meta(MovieSerializer.Meta):
+        fields = [
+            field
+            for field in MovieSerializer.Meta.fields
+            if field != "image"
+        ]
 
 
 class MovieImageSerializer(serializers.ModelSerializer):
@@ -90,12 +94,6 @@ class MovieSessionListSerializer(MovieSessionSerializer):
             "tickets_available",
             "movie_image",
         )
-
-
-class MovieCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = ("id", "title", "description", "duration", "genres", "actors")
 
 
 class TicketSerializer(serializers.ModelSerializer):
