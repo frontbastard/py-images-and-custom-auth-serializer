@@ -53,11 +53,7 @@ class MovieDetailSerializer(MovieSerializer):
 
 class MovieCreateSerializer(MovieSerializer):
     class Meta(MovieSerializer.Meta):
-        fields = [
-            field
-            for field in MovieSerializer.Meta.fields
-            if field != "image"
-        ]
+        exclude = ("image",)
 
 
 class MovieImageSerializer(serializers.ModelSerializer):
