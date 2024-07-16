@@ -54,7 +54,7 @@ class MovieDetailSerializer(MovieSerializer):
 class MovieCreateSerializer(MovieSerializer):
     class Meta:
         model = Movie
-        exclude = ('image',)
+        exclude = ("image",)
 
 
 class MovieImageSerializer(serializers.ModelSerializer):
